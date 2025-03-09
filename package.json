@@ -1,5 +1,5 @@
 {
-  "name": "fexios",
+  "name": "fexios-browser",
   "version": "2.1.0",
   "description": "对fetch的封装, 使其能够表现的像axios",
   "main": "dist/index.cjs.js",
