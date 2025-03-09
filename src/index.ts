@@ -1,41 +1,52 @@
 import InterceptorManager from "./InterceptorManager";
 
 export interface FRequest {
-    url: string,
+    url: string | URL,
     headers?: Record<string, string>,
     method: "GET" | "POST",
-    baseURL?: string,
-    data?: object,
+    baseURL?: string | URL,
+    data?: any,
 }
 
 export interface FResponse {
     status: number,
     statusText: string,
-    data: object,
+    data: any,
     headers: Record<string, string>,
     request: FRequest,
 }
 
-class Fexios {
-    private baseURL: string;
-    private headers: Record<string, string>;
-    private interceptors: { request: InterceptorManager, response: InterceptorManager }
+export interface InitConfig {
+    baseURL: string | URL,
+    headers: Record<string, string>
+}
 
-    constructor(baseURL: string, headers: Record<string, string> = { 'Content-Type': 'application/json' }) {
-        this.baseURL = baseURL;
-        this.headers = headers;
+class Fexios {
+    public defaults: InitConfig;
+    public interceptors: { request: InterceptorManager, response: InterceptorManager }
+
+    constructor(initConfig: InitConfig) {
+        this.defaults = initConfig;
         this.interceptors = {
             request: new InterceptorManager(),
             response: new InterceptorManager()
         };
     }
 
+    create(initConfig: Partial<InitConfig>) {
+        const config: InitConfig = {
+            ...this.defaults,
+            ...initConfig
+        };
+        return new Fexios(config);
+    }
+
     public async request(request: FRequest) {
         try {
             const mergedRequest: FRequest = {
                 ...request,
-                headers: { ...this.headers, ...request.headers },
-                baseURL: request.baseURL || this.baseURL
+                headers: { ...this.defaults.headers, ...request.headers },
+                baseURL: request.baseURL || this.defaults.baseURL
             };
 
             let chain: Promise<FRequest> = Promise.resolve(mergedRequest);
