@@ -32,13 +32,13 @@ class Fexios {
 
     public async request(request: FRequest) {
         try {
-            const requestURL = new URL(request.url, request.baseURL ? request.baseURL : this.baseURL);
-            if (!request.headers) {
-                request.headers = this.headers;
-            }
+            const mergedRequest: FRequest = {
+                ...request,
+                headers: { ...this.headers, ...request.headers },
+                baseURL: request.baseURL || this.baseURL
+            };
 
-            let chain: Promise<FRequest> = Promise.resolve(request);
-
+            let chain: Promise<FRequest> = Promise.resolve(mergedRequest);
             this.interceptors.request.forEach(({ fulfilled, rejected }: {
                 fulfilled: (value: FRequest) => FRequest | Promise<FRequest>,
                 rejected?: (error: any) => never
@@ -46,14 +46,21 @@ class Fexios {
                 chain = chain.then(fulfilled, rejected);
             });
 
+            let processedRequest = await chain;
 
-            const rowResponse = await fetch(requestURL, {
-                method: request.method,
-                headers: request.headers,
-                body: request.data ? JSON.stringify(request.data) : undefined,
+            const rowResponse = await fetch(new URL(processedRequest.url, processedRequest.baseURL), {
+                method: processedRequest.method,
+                headers: processedRequest.headers,
+                body: processedRequest.data ? JSON.stringify(processedRequest.data) : undefined,
             });
 
-            const responseData = await rowResponse.json();
+            const contentType = rowResponse.headers.get('Content-Type') || '';
+            let responseData;
+            if (contentType.includes("json")) {
+                responseData = await rowResponse.json();
+            } else {
+                responseData = rowResponse;
+            }
 
             const headers: Record<string, string> = {};
             rowResponse.headers.forEach((value, key) => {
@@ -68,7 +75,12 @@ class Fexios {
                 request: request
             };
 
-            let responseChain: Promise<FResponse> = Promise.resolve(response);
+            let responseChain: Promise<FResponse>;
+            if (rowResponse.ok) {
+                responseChain = Promise.resolve(response);
+            } else {
+                responseChain = Promise.reject(response);
+            }
             this.interceptors.response.forEach(({ fulfilled, rejected }: {
                 fulfilled: (value: FResponse) => FResponse | Promise<FResponse>,
                 rejected?: (error: any) => never
@@ -76,18 +88,9 @@ class Fexios {
                 responseChain = responseChain.then(fulfilled, rejected);
             });
 
-            if (!rowResponse.ok) {
-                throw response;
-            }
             return await responseChain;
         } catch (error) {
-            let errorChain = Promise.reject(error);
-            this.interceptors.response.forEach(({ rejected }: { rejected?: (error: any) => never }) => {
-                if (rejected) {
-                    errorChain = errorChain.catch(rejected);
-                }
-            });
-            return await errorChain;
+            throw error;
         }
     }
 }
