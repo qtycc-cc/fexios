@@ -1,6 +1,6 @@
 {
   "name": "fexios",
-  "version": "0.1.1",
+  "version": "2.1.0",
   "description": "对fetch的封装, 使其能够表现的像axios",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
