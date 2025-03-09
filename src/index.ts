@@ -33,14 +33,6 @@ class Fexios {
         };
     }
 
-    public create(initConfig: Partial<InitConfig>) {
-        const config: InitConfig = {
-            ...this.defaults,
-            ...initConfig
-        };
-        return new Fexios(config);
-    }
-
     public async request(request: FRequest) {
         try {
             const mergedRequest: FRequest = {
