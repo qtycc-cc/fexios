@@ -3,7 +3,7 @@ import InterceptorManager from "./InterceptorManager";
 export interface FRequest {
     url: string | URL,
     headers?: Record<string, string>,
-    method: "GET" | "POST",
+    method: "GET" | "POST" | "DELETE" | "PUT",
     baseURL?: string | URL,
     data?: any,
 }
@@ -67,7 +67,7 @@ class Fexios {
 
             const contentType = rowResponse.headers.get('Content-Type') || '';
             let responseData;
-            if (contentType.includes("json")) {
+            if (contentType.includes("application/json")) {
                 responseData = await rowResponse.json();
             } else {
                 responseData = rowResponse;
