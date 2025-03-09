@@ -2,6 +2,9 @@
   "name": "fexios",
   "version": "0.1.0",
   "description": "对fetch的封装, 使其能够表现的像axios",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
     "build": "tsup src --format esm,cjs --dts",
