@@ -33,7 +33,7 @@ class Fexios {
         };
     }
 
-    create(initConfig: Partial<InitConfig>) {
+    public create(initConfig: Partial<InitConfig>) {
         const config: InitConfig = {
             ...this.defaults,
             ...initConfig
