@@ -1,6 +1,6 @@
 {
   "name": "fexios-browser",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "对fetch的封装, 使其能够表现的像axios",
   "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
