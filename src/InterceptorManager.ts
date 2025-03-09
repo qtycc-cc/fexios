@@ -1,18 +1,18 @@
-interface Handler {
-    fulfilled: Function,
-    rejected: Function
+interface Handler<T> {
+    onFulfilled?: ((value: T) => T | Promise<T>),
+    onRejected?: ((error: any) => any)
 }
 
-class InterceptorManager {
-    private handlers: (Handler | null)[];
+class InterceptorManager<T = any> {
+    private handlers: (Handler<T> | null)[];
     constructor() {
         this.handlers = [];
     }
 
-    public use(fulfilled: Function, rejected: Function) {
+    public use(fulfilled: ((value: T) => T | Promise<T>), rejected: ((error: any) => any)) {
         this.handlers.push({
-            fulfilled,
-            rejected,
+            onFulfilled: fulfilled,
+            onRejected: rejected,
         });
         return this.handlers.length - 1;
     }
