@@ -1,9 +1,8 @@
 {
   "name": "fexios-browser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "对fetch的封装, 使其能够表现的像axios",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
@@ -13,6 +12,9 @@
   "keywords": [
     "fetch",
     "axios"
+  ],
+  "files": [
+    "dist"
   ],
   "author": "",
   "license": "MIT",
