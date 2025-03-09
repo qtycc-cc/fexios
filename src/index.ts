@@ -104,6 +104,42 @@ class Fexios {
             throw error;
         }
     }
+
+    public async get(url: string | URL, request: Omit<FRequest, "url" | "method">) {
+        const getRequest: FRequest = {
+            ...request,
+            url: url,
+            method: "GET"
+        };
+        return this.request(getRequest);
+    }
+
+    public async post(url: string | URL, request: Omit<FRequest, "url" | "method">) {
+        const postRequest: FRequest = {
+            ...request,
+            url: url,
+            method: "POST"
+        };
+        return this.request(postRequest);
+    }
+
+    public async delete(url: string | URL, request: Omit<FRequest, "url" | "method">) {
+        const deleteRequest: FRequest = {
+            ...request,
+            url: url,
+            method: "DELETE"
+        };
+        return this.request(deleteRequest);
+    }
+
+    public async put(url: string | URL, request: Omit<FRequest, "url" | "method">) {
+        const putRequest: FRequest = {
+            ...request,
+            url: url,
+            method: "PUT"
+        };
+        return this.request(putRequest);
+    }
 }
 
 export default Fexios;
