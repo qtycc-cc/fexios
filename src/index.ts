@@ -77,6 +77,7 @@ export interface InitConfig {
 }
 
 class Fexios<T> {
+    [key: string]: any;
     public defaults: InitConfig;
     public interceptors: { request: InterceptorManager<FRequestConfig<T>>, response: InterceptorManager<FResponse<T>> }
 
@@ -86,9 +87,21 @@ class Fexios<T> {
             request: new InterceptorManager(),
             response: new InterceptorManager()
         };
+
+        const methods: Method[] = ['get', 'post', 'delete', 'put', 'head', 'options', 'patch', 'purge', 'link',  'unlink'];
+        methods.forEach(method => {
+            this[method.toLowerCase()] = async (url: string | URL, request: Omit<FRequestConfig<T>, "url" | "method">) => {
+                const requestConfig: FRequestConfig<T> = {
+                    ...request,
+                    url: url,
+                    method: method.toUpperCase() as Method
+                };
+                return this.request(requestConfig);
+            };
+        });
     }
 
-    public async request(config: FRequestConfig<T>) : Promise<FResponse<T>> {
+    public async request(config: FRequestConfig<T>): Promise<FResponse<T>> {
         const mergedRequest: FRequestConfig<T> = {
             ...config,
             headers: { ...this.defaults.headers, ...config.headers },
@@ -116,42 +129,6 @@ class Fexios<T> {
         }
 
         return promise as unknown as Promise<FResponse<T>>;
-    }
-
-    public async get(url: string | URL, request: Omit<FRequestConfig<T>, "url" | "method">) {
-        const getRequest: FRequestConfig<T> = {
-            ...request,
-            url: url,
-            method: "GET"
-        };
-        return this.request(getRequest);
-    }
-
-    public async post(url: string | URL, request: Omit<FRequestConfig<T>, "url" | "method">) {
-        const postRequest: FRequestConfig<T> = {
-            ...request,
-            url: url,
-            method: "POST"
-        };
-        return this.request(postRequest);
-    }
-
-    public async delete(url: string | URL, request: Omit<FRequestConfig<T>, "url" | "method">) {
-        const deleteRequest: FRequestConfig<T> = {
-            ...request,
-            url: url,
-            method: "DELETE"
-        };
-        return this.request(deleteRequest);
-    }
-
-    public async put(url: string | URL, request: Omit<FRequestConfig<T>, "url" | "method">) {
-        const putRequest: FRequestConfig<T> = {
-            ...request,
-            url: url,
-            method: "PUT"
-        };
-        return this.request(putRequest);
     }
 }
 

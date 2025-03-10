@@ -1,4 +1,4 @@
-import { FRequestConfig, FResponse } from "./index";
+import type { FRequestConfig, FResponse } from "./index";
 
 export default async function dispatchRequest<T>(config: FRequestConfig<T>): Promise<FResponse<T>> {
     const rowResponse = await fetch(new URL(config.url, config.baseURL), {
@@ -12,7 +12,7 @@ export default async function dispatchRequest<T>(config: FRequestConfig<T>): Pro
     if (contentType.includes("application/json")) {
         responseData = await rowResponse.json(); // 自动转json
     } else {
-        responseData = rowResponse;
+        responseData = rowResponse; // 暂不处理
     }
 
     const headers: Record<string, string> = {};
