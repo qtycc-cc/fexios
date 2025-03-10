@@ -1,15 +1,15 @@
-interface Handler<T> {
+export interface Handler<T> {
     onFulfilled?: ((value: T) => T | Promise<T>),
     onRejected?: ((error: any) => any)
 }
 
-class InterceptorManager<T = any> {
-    private handlers: (Handler<T> | null)[];
+class InterceptorManager<T> {
+    public handlers: (Handler<T> | undefined)[];
     constructor() {
         this.handlers = [];
     }
 
-    public use(fulfilled: ((value: T) => T | Promise<T>), rejected: ((error: any) => any)) {
+    public use(fulfilled?: ((value: T) => T | Promise<T>), rejected?: ((error: any) => any)) {
         this.handlers.push({
             onFulfilled: fulfilled,
             onRejected: rejected,
@@ -19,7 +19,7 @@ class InterceptorManager<T = any> {
 
     public eject(id: number) {
         if (this.handlers[id]) {
-            this.handlers[id] = null;
+            this.handlers[id] = undefined;
         }
     }
 
@@ -29,9 +29,9 @@ class InterceptorManager<T = any> {
         }
     }
 
-    public forEach(fn: Function) {
+    public forEach(fn: (value: Handler<T>) => any) {
         this.handlers.forEach(handler => {
-            if (handler !== null) {
+            if (handler) {
                 fn(handler);
             }
         });
