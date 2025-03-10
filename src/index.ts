@@ -76,7 +76,7 @@ export interface InitConfig {
     headers: Record<string, string>
 }
 
-class Fexios<T> {
+class Fexios<T = any> {
     public get!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
     public post!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
     public delete!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
