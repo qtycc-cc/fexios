@@ -77,7 +77,17 @@ export interface InitConfig {
 }
 
 class Fexios<T> {
-    [key: string]: any;
+    public get!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+    public post!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+    public delete!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+    public put!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+    public head!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+    public options!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+    public patch!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+    public purge!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+    public link!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+    public unlink!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+
     public defaults: InitConfig;
     public interceptors: { request: InterceptorManager<FRequestConfig<T>>, response: InterceptorManager<FResponse<T>> }
 
@@ -90,7 +100,7 @@ class Fexios<T> {
 
         const methods: Method[] = ['get', 'post', 'delete', 'put', 'head', 'options', 'patch', 'purge', 'link',  'unlink'];
         methods.forEach(method => {
-            this[method.toLowerCase()] = async (url: string | URL, request: Omit<FRequestConfig<T>, "url" | "method">) => {
+            (this as any)[method] = async (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => {
                 const requestConfig: FRequestConfig<T> = {
                     ...request,
                     url: url,
