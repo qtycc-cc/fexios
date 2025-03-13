@@ -11,15 +11,12 @@ export type Method =
     | 'options' | 'OPTIONS'
     | 'post' | 'POST'
     | 'put' | 'PUT'
-    | 'patch' | 'PATCH'
-    | 'purge' | 'PURGE'
-    | 'link' | 'LINK'
-    | 'unlink' | 'UNLINK';
+    | 'patch' | 'PATCH';
 
 /**
  * 请求配置类型
  */
-export interface FRequestConfig<T> {
+export type FRequestConfig<T> = {
     /**
      * 基于baseURL的请求地址
      */
@@ -27,7 +24,7 @@ export interface FRequestConfig<T> {
     /**
      * 请求头
      */
-    headers?: Record<string, string>,
+    headers?: Record<string, string> | Headers,
     /**
      * 请求方法
      */
@@ -40,12 +37,20 @@ export interface FRequestConfig<T> {
      * 传输数据
      */
     data?: T,
+    /**
+     * 跨域是否携带cookie
+     */
+    withCredentials?: boolean,
+    /**
+     * 超时时间
+    */
+    timeout?: number,
 }
 
 /**
  * 响应类型
  */
-export interface FResponse<T> {
+export type FResponse<R, T> = {
     /**
      * HTTP响应码
      */
@@ -55,41 +60,52 @@ export interface FResponse<T> {
      */
     statusText: string,
     /**
-     * 响应数据
-     */
-    data: any,
-    /**
      * 响应头
      */
     headers: Record<string, string>,
     /**
      * 请求的配置
      */
-    config: FRequestConfig<T>,
-}
+    config: FRequestConfig<T>
+} & ({
+    /**
+     * 响应数据
+     * json自动解析
+     */
+    data: R,
+    type: "json"
+} | {
+    /**
+     * 响应数据
+     * 其他类型，保留原始Response
+     */
+    data: Response,
+    type: "other"
+});
 
 /**
  * 初始化配置类型
  */
-export interface InitConfig {
-    baseURL: string | URL,
-    headers: Record<string, string>
+export interface InitConfig extends Omit<FRequestConfig<any>, "url" | "method" | "data"> {
 }
-
-class Fexios<T = any> {
-    public get!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
-    public post!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
-    public delete!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
-    public put!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
-    public head!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
-    public options!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
-    public patch!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
-    public purge!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
-    public link!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
-    public unlink!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => Promise<FResponse<T>>;
+/**
+ * Fexios类
+ * T: 传输数据类型
+ * R: 响应数据类型
+ */
+class Fexios<T = any, R = any> {
+    // 没有请求数据
+    public get!: (url: string | URL ,request?: Omit<FRequestConfig<T>, "url" | "method" | "data">) => Promise<FResponse<R, T>>;
+    public delete!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method" | "data">) => Promise<FResponse<R, T>>;
+    public head!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method" | "data">) => Promise<FResponse<R, T>>;
+    public options!: (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method" | "data">) => Promise<FResponse<R, T>>;
+    // 有请求数据
+    public post!: (url: string | URL, data?: T, request?: Omit<FRequestConfig<T>, "url" | "method" | "data">) => Promise<FResponse<R, T>>;
+    public put!: (url: string | URL, data?: T, request?: Omit<FRequestConfig<T>, "url" | "method" | "data">) => Promise<FResponse<R, T>>;
+    public patch!: (url: string | URL, data?: T, request?: Omit<FRequestConfig<T>, "url" | "method" | "data">) => Promise<FResponse<R, T>>;
 
     public defaults: InitConfig;
-    public interceptors: { request: InterceptorManager<FRequestConfig<T>>, response: InterceptorManager<FResponse<T>> }
+    public interceptors: { request: InterceptorManager<FRequestConfig<T>>, response: InterceptorManager<FResponse<R, T>> }
 
     constructor(initConfig: InitConfig) {
         this.defaults = initConfig;
@@ -98,9 +114,22 @@ class Fexios<T = any> {
             response: new InterceptorManager()
         };
 
-        const methods: Method[] = ['get', 'post', 'delete', 'put', 'head', 'options', 'patch', 'purge', 'link',  'unlink'];
-        methods.forEach(method => {
-            (this as any)[method] = async (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method">) => {
+        const withDataMethods: Method[] = ['post', 'put', 'patch'];
+        withDataMethods.forEach(method => {
+            (this as any)[method] = async (url: string | URL, data?: T, request?: Omit<FRequestConfig<T>, "url" | "method" | "data">) => {
+                const requestConfig: FRequestConfig<T> = {
+                    ...request,
+                    url: url,
+                    method: method.toUpperCase() as Method,
+                    data: data
+                };
+                return this.request(requestConfig);
+            };
+        });
+
+        const withoutDataMethods: Method[] = ['get', 'delete', 'head', 'options'];
+        withoutDataMethods.forEach(method => {
+            (this as any)[method] = async (url: string | URL, request?: Omit<FRequestConfig<T>, "url" | "method" | "data">) => {
                 const requestConfig: FRequestConfig<T> = {
                     ...request,
                     url: url,
@@ -111,11 +140,15 @@ class Fexios<T = any> {
         });
     }
 
-    public async request(config: FRequestConfig<T>): Promise<FResponse<T>> {
+    public async request(config: FRequestConfig<T>): Promise<FResponse<R, T>> {
+        config.headers = config.headers || {};
         const mergedRequest: FRequestConfig<T> = {
+            ...this.defaults,
             ...config,
-            headers: { ...this.defaults.headers, ...config.headers },
-            baseURL: config.baseURL || this.defaults.baseURL
+            headers: {
+                ...this.defaults.headers,
+                ...config.headers
+            }
         };
 
         let chain: (
@@ -138,7 +171,7 @@ class Fexios<T = any> {
             promise = promise.then(chain[i++], chain[i++]);
         }
 
-        return promise as unknown as Promise<FResponse<T>>;
+        return promise as unknown as Promise<FResponse<R, T>>;
     }
 }
 

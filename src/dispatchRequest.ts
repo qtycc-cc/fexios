@@ -1,6 +1,6 @@
 import type { FRequestConfig, FResponse } from "./index";
 
-export default async function dispatchRequest<T>(config: FRequestConfig<T>): Promise<FResponse<T>> {
+export default async function dispatchRequest<R, T>(config: FRequestConfig<T>) {
     const rowResponse = await fetch(new URL(config.url, config.baseURL), {
         method: config.method,
         headers: config.headers,
@@ -20,9 +20,10 @@ export default async function dispatchRequest<T>(config: FRequestConfig<T>): Pro
         headers[key] = value;
     });
 
-    const response: FResponse<T> = {
+    const response: FResponse<R, T> = {
         status: rowResponse.status,
         statusText: rowResponse.statusText,
+        type: contentType.includes("application/json") ? "json" : "other",
         data: responseData,
         headers: headers,
         config: config
