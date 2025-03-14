@@ -1,5 +1,6 @@
 import dispatchRequest from "./dispatchRequest";
 import InterceptorManager from "./InterceptorManager";
+import useUtil from "./utils";
 
 /**
  * 请求方法类型
@@ -141,15 +142,18 @@ class Fexios<T = any, R = any> {
     }
 
     public async request(config: FRequestConfig<T>): Promise<FResponse<R, T>> {
+        const { deepMerge, normalizeHeaders } = useUtil();
         config.headers = config.headers || {};
         const mergedRequest: FRequestConfig<T> = {
             ...this.defaults,
             ...config,
-            headers: {
-                ...this.defaults.headers,
-                ...config.headers
-            }
+            headers: deepMerge(
+                normalizeHeaders(this.defaults.headers),
+                normalizeHeaders(config.headers)
+            ),
         };
+
+        console.log(mergedRequest);
 
         let chain: (
             ((value: FRequestConfig<T>) => FRequestConfig<T> | Promise<FRequestConfig<T>>) |
