@@ -153,8 +153,6 @@ class Fexios<T = any, R = any> {
             ),
         };
 
-        console.log(mergedRequest);
-
         let chain: (
             ((value: FRequestConfig<T>) => FRequestConfig<T> | Promise<FRequestConfig<T>>) |
             ((error: any) => any) |
