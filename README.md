@@ -38,7 +38,7 @@ const api = new Fexios<UserRequest, UserResponse>({
 });
 
 const response = await api.post('/api/v1/login', {
-  account: "18259008878",
+  account: "13813386277",
   password: "123456"
 });
 
